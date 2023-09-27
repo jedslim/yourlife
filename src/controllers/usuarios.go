@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//Funções para CRIAR, BUSCAR, ATUALIZAR e DELETAR usuários no banco de dados
+//CRUD
 
 func CriarUsuario (w http.ResponseWriter, r *http.Request) {
 	corpoRequest, erro := ioutil.ReadAll(r.Body)
@@ -137,6 +137,31 @@ func AtualizarUsuario (w http.ResponseWriter, r *http.Request) {
 
 
 }
-func DeletarUsuario (w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Deletando Usuário!"))
+func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
+	parametros := mux.Vars(r)
+	usuarioID, erro := strconv.ParseUint(parametros["usuarioId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+	
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
+	if erro = repositorio.Deletar(usuarioID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	
+
+
+	respostas.JSON(w, http.StatusNoContent, nil)
+
 }
